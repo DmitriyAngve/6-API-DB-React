@@ -14,7 +14,10 @@ function App() {
     setError(null); // for clear previous error
 
     try {
-      const response = await fetch("https://swapi.dev/api/films");
+      const response = await fetch(
+        "https://react-http-angve-default-rtdb.firebaseio.com/movies.json"
+      );
+      // const response = await fetch("https://swapi.dev/api/films");
       // const response = await fetch("https://swapi.dev/api/film"); // for simulate error
       // .then((response) => {
       //   return response.json();
@@ -150,3 +153,15 @@ export default App;
 // 1.4.1 transform it to const: "const fetchMovieHandler = useCallback(async () => {...}, [])". And list any dependencies this function might have
 // 1.5 Move useEffect call after "fetchMovieHandler" definition
 // ~~ USING useEffect() FOR REQUESTS ~~
+
+// ~~ UPDATE APP FOR THE NEXT STEPS ~~
+// STEP: 1
+// 1.1 Add AddMovie.js file with component
+// 1.2 Create "addMovieHandler" inside of App Component
+// 1.3 Add to JSX code section with "<AddMovie onAddMovie={addMovieHandler} />" for render with Component
+
+// STEP 2: Create Firebase database in test mode
+// 2.1 Replace "response" object to "const response = await fetch(     "https://react-http-angve-default-rtdb.firebaseio.com/movies.json");"
+// 2.2 "movies.json" in URL will then hust create a new node in that database basically, it's a dynamic rest API which you can confugure here by using different segments to store data in defferent nodes of your database. ".json" - Firebase specific, they need this ".json" at the end of the URL you are sending requests to otherwise requests will fail
+
+// ~~ UPDATE APP FOR THE NEXT STEPS ~~
