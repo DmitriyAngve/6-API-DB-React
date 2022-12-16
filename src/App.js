@@ -29,16 +29,29 @@ function App() {
 
       const data = await response.json();
       // .then((data) => {
+      console.log(data);
 
-      const transformedMovies = data.results.map((movieData) => {
-        return {
-          id: movieData.episode_id,
-          title: movieData.title,
-          openingText: movieData.opening_crawl,
-          releaseDate: movieData.release_date,
-        };
-      });
-      setMovies(transformedMovies);
+      // const transformedMovies = data.results.map((movieData) => {
+      const loadedMovies = [];
+      for (const key in data) {
+        loadedMovies.push({
+          id: key,
+          title: data[key].title,
+          openingText: data[key].openingText,
+          // releaseDate: data[key].releaseDate,
+        });
+      }
+
+      // const transformedMovies = data.map((movieData) => {
+      //   return {
+      //     id: movieData.episode_id,
+      //     title: movieData.title,
+      //     openingText: movieData.opening_crawl,
+      //     releaseDate: movieData.release_date,
+      //   };
+      // });
+      // setMovies(transformedMovies);
+      setMovies(loadedMovies);
       // });
     } catch (error) {
       setError(error.message);
@@ -50,8 +63,27 @@ function App() {
     fetchMovieHandler();
   }, [fetchMovieHandler]);
 
-  function addMovieHandler(movie) {
-    console.log(movie);
+  async function addMovieHandler(movie) {
+    try {
+      const response = await fetch(
+        "https://react-http-angve-default-rtdb.firebaseio.com/movies.json",
+        {
+          method: "POST",
+          body: JSON.stringify(movie),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Something went wrong");
+      }
+      const data = await response.json();
+      console.log(data);
+    } catch (error) {
+      setError(error.message);
+    }
+    setIsLoading(false);
   }
 
   let content = <p>Found no movies.</p>;
@@ -163,5 +195,25 @@ export default App;
 // STEP 2: Create Firebase database in test mode
 // 2.1 Replace "response" object to "const response = await fetch(     "https://react-http-angve-default-rtdb.firebaseio.com/movies.json");"
 // 2.2 "movies.json" in URL will then hust create a new node in that database basically, it's a dynamic rest API which you can confugure here by using different segments to store data in defferent nodes of your database. ".json" - Firebase specific, they need this ".json" at the end of the URL you are sending requests to otherwise requests will fail
-
 // ~~ UPDATE APP FOR THE NEXT STEPS ~~
+
+// ~~ SENDING A POST REQUEST ~~
+// In App.js we get a movie object, which in the end contains (see in AddMovie.js: title:..., opepeningText:..., releaseDate:...); and "id" will be added by Firebase automatically
+// STEP: 1
+// 1.1 Add another http-request in "addMovieHandler" by using the fetch API. Ypu can also use that same function (GET) to send data (POST).
+// 1.2 Add same URL (like fetch but for send) as first argument, second argument (use this argument to configure this outgoing request) ->  "method: "POST"" to send a POST request. If you send a POST request to this end point at our Firebase service, Firebase we'll go ahead and create a resouce in the resource.
+// 1.3 So, we need to add this recource, which should be stored -> "body"
+// 1.4 "body" we can use a utility method which exist in JavaScript. Use JSON object, which is built into browser side JavaScript and call stringify, This takes a JavaScript object and turns it to JSON format.
+// 1.5 Add some "headers". The headers key and setting an object as a value, That's the "Content-Type" header, should be set to "application/json" (it's not required)
+// 1.6 With that, we'll send a POST request with that data, to URL, it's a asynchrronous task -> add a"sync-await"
+// 1.7 "const response = await fetch(...)"
+// 1.8 And awaiting response data 'const data = await response.json() - because Firebase als sends back data in JSON format
+// 1.9 Add "try{} catch{}"
+// STEP: 2 Work with GET
+// 2.1 Need to transform to again display our movies with new added:
+// 2.1.1 Create new array "loadedMovies" which initially is empty and then create a for  in loop to loop through all the keys in data, because data is now an object as I just mentioned and keys are the "ID" of the movies.
+// 2.1.2 "for (const key in data){..." here go to "loadedMovies" and push a new object for every key value pair: "id: key,"
+// 2.1.3 "title: data[key].title," - here we're drilling into that nested object we got into response (this is how we dynamically access a property in JavaScript)
+// 2.1.4 The same with others pair
+
+// ~~ SENDING A POST REQUEST ~~
