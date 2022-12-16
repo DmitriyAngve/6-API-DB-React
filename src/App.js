@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import MoviesList from "./components/MoviesList";
 import "./App.css";
@@ -8,27 +8,56 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  async function fetchMovieHandler() {
+  const fetchMovieHandler = useCallback(async () => {
     setIsLoading(true);
     setError(null); // for clear previous error
-    // const response = await fetch("https://swapi.dev/api/films");
-    const response = await fetch("https://swapi.dev/api/film"); // for simulate error
-    // .then((response) => {
-    //   return response.json();
-    // })
-    const data = await response.json();
-    // .then((data) => {
-    const transformedMovies = data.results.map((movieData) => {
-      return {
-        id: movieData.episode_id,
-        title: movieData.title,
-        openingText: movieData.opening_crawl,
-        releaseDate: movieData.release_date,
-      };
-    });
-    setMovies(transformedMovies);
+
+    try {
+      const response = await fetch("https://swapi.dev/api/films");
+      // const response = await fetch("https://swapi.dev/api/film"); // for simulate error
+      // .then((response) => {
+      //   return response.json();
+      // })
+
+      if (!response.ok) {
+        throw new Error("Something went wrong");
+      }
+
+      const data = await response.json();
+      // .then((data) => {
+
+      const transformedMovies = data.results.map((movieData) => {
+        return {
+          id: movieData.episode_id,
+          title: movieData.title,
+          openingText: movieData.opening_crawl,
+          releaseDate: movieData.release_date,
+        };
+      });
+      setMovies(transformedMovies);
+      // });
+    } catch (error) {
+      setError(error.message);
+    }
     setIsLoading(false);
-    // });
+  }, []);
+
+  useEffect(() => {
+    fetchMovieHandler();
+  }, [fetchMovieHandler]);
+
+  let content = <p>Found no movies.</p>;
+
+  if (movies.length > 0) {
+    content = <MoviesList movies={movies} />;
+  }
+
+  if (error) {
+    content = <p>{error}</p>;
+  }
+
+  if (isLoading) {
+    content = <p>Loading...</p>;
   }
 
   return (
@@ -36,11 +65,13 @@ function App() {
       <section>
         <button onClick={fetchMovieHandler}>Fetch Movies</button>
       </section>
-      <section>
-        {!isLoading && movies.length > 0 && <MoviesList movies={movies} />}
-        {!isLoading && movies.length === 0 && <p>Found no movies.</p>}
-        {isLoading && <p>Loading...</p>}
-      </section>
+      <section>{content}</section>
+      {/* {!isLoading && movies.length > 0 && <MoviesList movies={movies} />}
+        {!isLoading && movies.length === 0 && !error && <p>Found no movies.</p>}
+        {!isLoading && error && <p>{error}</p>}
+        {isLoading && <p>Loading...</p>} */}
+      <></>
+      {/* </section> */}
     </React.Fragment>
   );
 }
@@ -87,5 +118,27 @@ export default App;
 // STEP: 1
 // 1.1 Simulate error in "const response = await fetch("https://swapi.dev/api/film")"
 // 1.2 Add third state, "const [error, setError] = useState(null)" - null, because initially we have no error, and whenever "fetchMovieHandler" is fired, we also might wanna reset this error to null to make sure that we clear any previous errors we might have gotten (or use .catch() method if we use then())
-// 1.3
+// 1.3 Add "try{} catch{}" block to wrap all code.
+// 1.4 I can use "Axios" library, which use for sending requests would generate and tho a real error for error status code. Since here I not using "Axios" here but the Fetch API, we have to do this to our own: "response.ok" object which we get back has this "ok" field, which basically signals whether the response was successful or not.
+// 1.5 Add "ifcheck": if(!response.ok){} then generate ahd thrwo our own error in that case "throw new Error("")" - throw this error if have an unseccessufl respones, and won't continue with the next step in line: "const transformedMovies = data.results...". Instead, we'll make it into this catch block here I add "setError(error.message)"
+// 1.6 Add to JSX code for rendering: "{!isLoading}" and do error "{!isLoading && error}" and display "{!isLoading && error && <>}"
+// 1.7 Even if we have error, we're not loading anymore: move " setIsLoading(false)" out of "try-catch" block.
+// 1.8 In addition to the other checks: add "!error" - get no error. " {!isLoading && movies.length === 0 && !error && <p>Found no movies.</p>}"
+// STEP 2:
+// 2.1 More elegant way: create variable "let content = <p>Found no movies.</p>"
+// 2.2 Add several new "ifcheck"'s.
 // ~~ HANDLING HTTP ERRORS ~~
+
+//
+
+// ~~ USING useEffect() FOR REQUESTS ~~
+// To immediately fetchted data we can use another concept - use useEffect Hook
+// because sending a HTTP request is a side effect which changes our components state
+// STEP: 1
+// 1.1 Let's use "useEffect": import, add to "App" and call "fetchMovieHandler",so now  this function is still called if I click the button (don't gorget "fetchMoviesHandler"), but in addition also whenever this component is re-evaluated.
+// 1.2 To avoid an infinite task we add second argument (array of dependencies), where we define when this effect function should be executed again. Explanation: It will only execute again if the dependencies listed here change. If array of dependencies is empty -> useEffect() will never run again, except for the very first time the component is loaded (if reload the data fetch immediately)
+// 1.3 Let's refer in dependencies into function "fetchMoviesHandler" because if this function changes this effect should be re-executed and this function could change if we would be using some external state in function body. Problem - function is a object and these function will technically change whenever this component re-renders (we wanns create infinite loop, if stay like this).
+// 1.4 Better solution of these problem - "useCallback" hook and wrap "fetchMoviesHandler" with that.
+// 1.4.1 transform it to const: "const fetchMovieHandler = useCallback(async () => {...}, [])". And list any dependencies this function might have
+// 1.5 Move useEffect call after "fetchMovieHandler" definition
+// ~~ USING useEffect() FOR REQUESTS ~~
