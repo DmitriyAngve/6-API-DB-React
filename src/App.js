@@ -120,7 +120,6 @@ function App() {
 }
 
 export default App;
-
 // ~~ SENDING A GET REQUEST ~~
 // STEP: 1
 // 1.1 Create function "fetchMovieHandler" for using "fetch()" and passed like string a URL to which you wanna sent a request - first agument. Second argument - a JavaScript object where we configure various options (for example where add extra headers, body or change the HTTP request method) but here we don't need that. Let's handle the response and fetch returns a promise which allows us to then react to the response or any potential error we might be getting
